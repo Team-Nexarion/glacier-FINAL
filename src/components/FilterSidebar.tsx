@@ -112,16 +112,7 @@ const FilterSidebar = ({ filters, onFiltersChange }) => {
         {!collapsed && (
           <div className="flex flex-col h-full">
             <div className="p-5 space-y-6 overflow-y-auto scrollbar-thin">
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search lakes..."
-                  value={filters.searchQuery}
-                  onChange={(e) => handleSearchChange(e.target.value)}
-                  className="pl-9 h-10 bg-secondary/30 border-border/50 focus:border-primary/50 focus:bg-secondary/50 transition-all rounded-lg"
-                />
-              </div>
+             
 
               {/* Risk Level Filter */}
               <div className="space-y-3">

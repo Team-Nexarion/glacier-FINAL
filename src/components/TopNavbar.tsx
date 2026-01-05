@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Mountain, LayoutDashboard, Upload, Info, UserPlus, LogOut, User, Mail, Building, Briefcase } from 'lucide-react';
+import { Mountain, LayoutDashboard, Upload, Bell, UserPlus, LogOut, User, Mail, Building, Briefcase, Check, X, Lock, Key } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,6 +32,10 @@ interface User {
 
 const TopNavbar = ({ activeTab, onTabChange, onAuthClick, onLogout }: TopNavbarProps) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [updatePasswordOpen, setUpdatePasswordOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [updatingPassword, setUpdatingPassword] = useState(false);
 
   useEffect(() => {
     // Check for logged in user
@@ -45,13 +52,51 @@ const TopNavbar = ({ activeTab, onTabChange, onAuthClick, onLogout }: TopNavbarP
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'upload', label: 'Upload Data', icon: Upload },
-    { id: 'about', label: 'About', icon: Info },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
   ];
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch('https://glacier-backend-4r0g.onrender.com/official/signout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+    } catch (err) {
+      console.error('Error signing out');
+    }
     localStorage.removeItem('currentUser');
     setCurrentUser(null);
     if (onLogout) onLogout();
+  };
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setUpdatingPassword(true);
+    try {
+      const res = await fetch('https://glacier-backend-4r0g.onrender.com/official/updatepassword', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          current_password: currentPassword,
+          new_password: newPassword
+        }),
+        credentials: 'include'
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('Password updated successfully');
+        setUpdatePasswordOpen(false);
+        setCurrentPassword('');
+        setNewPassword('');
+      } else {
+        alert(data.message);
+      }
+    } catch (err) {
+      alert('Error updating password');
+    }
+    setUpdatingPassword(false);
   };
 
   const getInitials = (name: string) => {
@@ -64,7 +109,8 @@ const TopNavbar = ({ activeTab, onTabChange, onAuthClick, onLogout }: TopNavbarP
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 bg-[#111827] border-b border-border">
+    <>
+      <header className="fixed top-0 left-0 right-0 z-40 bg-[#111827] border-b border-border">
 
       <div className="flex items-center justify-between px-6 h-14">
         {/* Logo & Title */}
@@ -159,11 +205,11 @@ const TopNavbar = ({ activeTab, onTabChange, onAuthClick, onLogout }: TopNavbarP
                 {/* Actions */}
                 <div className="p-2">
                   <DropdownMenuItem
-                    onClick={() => onTabChange('dashboard')}
+                    onClick={() => setUpdatePasswordOpen(true)}
                     className="flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-700 rounded-md cursor-pointer px-3 py-2"
                   >
-                    <User className="h-4 w-4" />
-                    See Your Profile
+                    <Key className="h-4 w-4" />
+                    Update Password
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={handleLogout}
@@ -196,6 +242,53 @@ const TopNavbar = ({ activeTab, onTabChange, onAuthClick, onLogout }: TopNavbarP
         </div>
       </div>
     </header>
+
+    {/* Update Password Dialog */}
+    <Dialog open={updatePasswordOpen} onOpenChange={setUpdatePasswordOpen}>
+      <DialogContent className="sm:max-w-[400px] bg-[#111827] border-gray-700">
+        <DialogHeader>
+          <DialogTitle className="text-white">Update Password</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleUpdatePassword} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="current-password" className="text-slate-300">Current Password</Label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+              <Input
+                id="current-password"
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                className="pl-10 bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500"
+                required
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="new-password" className="text-slate-300">New Password</Label>
+            <div className="relative">
+              <Key className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+              <Input
+                id="new-password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="pl-10 bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500"
+                required
+              />
+            </div>
+          </div>
+          <Button
+            type="submit"
+            disabled={updatingPassword}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
+          >
+            {updatingPassword ? 'Updating...' : 'Update Password'}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 };
 

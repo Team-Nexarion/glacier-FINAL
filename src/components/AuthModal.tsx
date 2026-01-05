@@ -24,14 +24,12 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPosition, setSignupPosition] = useState('');
   const [signupDepartment, setSignupDepartment] = useState('');
-  const [signupPhoto, setSignupPhoto] = useState<string | null>(null);
+  const [signupPhoto, setSignupPhoto] = useState<File | null>(null);
 
   // Reset to login tab when modal opens
   useEffect(() => {
     if (open) {
       setActiveTab('login');
-      setLoginEmail('official@glacier.com');
-      setLoginPassword('password123');
     }
   }, [open]);
 
@@ -39,33 +37,27 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
     e.preventDefault();
     setLoading(true);
     
-    // Mock authentication - simulate API call
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    // Check mock credentials
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    
-    // First check if it's the default mock user
-    let user = null;
-    if (loginEmail === 'official@glacier.com' && loginPassword === 'password123') {
-      user = {
-        id: 1,
-        name: 'Admin Official',
-        email: 'official@glacier.com',
-        position: 'Administrator',
-        department: 'GLOF Management',
-        photo: null
-      };
-    } else {
-      // Check registered users
-      user = users.find((u: any) => u.email === loginEmail && u.password === loginPassword);
-    }
-    
-    if (user) {
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      onOpenChange(false);
-    } else {
-      alert('Invalid credentials. Use: official@glacier.com / password123');
+    try {
+      const res = await fetch('https://glacier-backend-4r0g.onrender.com/official/signin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: loginEmail,
+          password: loginPassword
+        }),
+        credentials: 'include'
+      });
+      const data = await res.json();
+      if (data.success) {
+        localStorage.setItem('currentUser', JSON.stringify(data.data));
+        onOpenChange(false);
+      } else {
+        alert(data.message);
+      }
+    } catch (err) {
+      alert('Error logging in');
     }
     
     setLoading(false);
@@ -75,35 +67,32 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
     e.preventDefault();
     setLoading(true);
     
-    // Mock authentication - simulate API call
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    // Get existing users
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    
-    // Check if email already exists
-    if (users.find((u: any) => u.email === signupEmail)) {
-      alert('Email already registered!');
-      setLoading(false);
-      return;
+    const formData = new FormData();
+    formData.append('email', signupEmail);
+    formData.append('name', signupName);
+    formData.append('position', signupPosition);
+    formData.append('department', signupDepartment);
+    if (signupPhoto) {
+      formData.append('photo', signupPhoto);
     }
     
-    // Create new user
-    const newUser = {
-      id: Date.now(),
-      name: signupName,
-      email: signupEmail,
-      position: signupPosition,
-      department: signupDepartment,
-      photo: signupPhoto,
-      createdAt: new Date().toISOString()
-    };
+    try {
+      const res = await fetch('https://glacier-backend-4r0g.onrender.com/official/register', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
+      const data = await res.json();
+      if (data.success) {
+        localStorage.setItem('currentUser', JSON.stringify(data.data));
+        onOpenChange(false);
+      } else {
+        alert(data.message);
+      }
+    } catch (err) {
+      alert('Error registering');
+    }
     
-    users.push(newUser);
-    localStorage.setItem('users', JSON.stringify(users));
-    localStorage.setItem('currentUser', JSON.stringify(newUser));
-    
-    onOpenChange(false);
     setLoading(false);
     
     // Reset form
@@ -117,17 +106,14 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setSignupPhoto(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      setSignupPhoto(file);
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[480px] p-0 bg-[#111827] border-gray-700 overflow-hidden">
+      <DialogContent className="sm:max-w-[320px] p-0 bg-[#111827] border-gray-700 overflow-hidden">
+
         {/* Close button */}
         <button
           onClick={() => onOpenChange(false)}
@@ -176,7 +162,7 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
                   <Input
                     id="login-email"
                     type="email"
-                    placeholder="official@glacier.com"
+                   
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
                     className="pl-10 bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500"
@@ -201,12 +187,6 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
                 </div>
               </div>
 
-              <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700">
-                <p className="text-xs text-slate-400 mb-1">Mock Credentials:</p>
-                <p className="text-xs text-slate-300">Email: official@glacier.com</p>
-                <p className="text-xs text-slate-300">Password: password123</p>
-              </div>
-
               <Button
                 type="submit"
                 disabled={loading}
@@ -218,29 +198,30 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
           </TabsContent>
 
           {/* Register Tab */}
-          <TabsContent value="register" className="p-6 mt-0">
+          <TabsContent value="register" className="p-4 mt-0">
+
             <form onSubmit={handleSignup} className="space-y-4">
-              {/* Profile Photo - Moved to Top */}
-              <div className="space-y-2">
-                <Label className="text-slate-300">Profile Photo</Label>
-                <div className="flex flex-col items-center gap-3 py-2">
+              {/* Profile Photo - At Top */}
+              <div className="space-y-1">
+                <Label className="text-slate-300 text-xs">Profile Photo</Label>
+                <div className="flex items-center gap-3 py-1">
                   <div className="relative">
                     {signupPhoto ? (
                       <img
-                        src={signupPhoto}
+                        src={URL.createObjectURL(signupPhoto)}
                         alt="Profile"
-                        className="w-24 h-24 rounded-full object-cover border-3 border-blue-500 shadow-lg"
+                        className="w-14 h-14 rounded-full object-cover border-2 border-blue-500"
                       />
                     ) : (
-                      <div className="w-24 h-24 rounded-full bg-slate-700 flex items-center justify-center border-3 border-slate-600 shadow-lg">
-                        <Camera className="h-10 w-10 text-slate-400" />
+                      <div className="w-14 h-14 rounded-full bg-slate-700 flex items-center justify-center border-2 border-slate-600">
+                        <Camera className="h-6 w-6 text-slate-400" />
                       </div>
                     )}
                     <label
                       htmlFor="signup-photo"
-                      className="absolute bottom-0 right-0 bg-blue-600 rounded-full p-2 cursor-pointer hover:bg-blue-700 transition-colors shadow-md"
+                      className="absolute bottom-0 right-0 bg-blue-600 rounded-full p-1 cursor-pointer hover:bg-blue-700 transition-colors"
                     >
-                      <Camera className="h-4 w-4 text-white" />
+                      <Camera className="h-2.5 w-2.5 text-white" />
                     </label>
                   </div>
                   <Input
@@ -250,11 +231,12 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
                     onChange={handlePhotoUpload}
                     className="hidden"
                   />
-                  <span className="text-sm text-slate-400 text-center">
-                    {signupPhoto ? 'Photo uploaded successfully!' : 'Click the camera icon to upload a photo'}
+                  <span className="text-xs text-slate-400">
+                    {signupPhoto ? 'Photo selected' : 'Click to upload'}
                   </span>
                 </div>
               </div>
+
 
               <div className="space-y-2">
                 <Label htmlFor="signup-name" className="text-slate-300">Full Name</Label>
@@ -263,7 +245,7 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
                   <Input
                     id="signup-name"
                     type="text"
-                    placeholder="John Doe"
+                    placeholder=""
                     value={signupName}
                     onChange={(e) => setSignupName(e.target.value)}
                     className="pl-10 bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500"
@@ -279,7 +261,7 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
                   <Input
                     id="signup-email"
                     type="email"
-                    placeholder="official@glacier.com"
+                    placeholder=""
                     value={signupEmail}
                     onChange={(e) => setSignupEmail(e.target.value)}
                     className="pl-10 bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500"
@@ -296,7 +278,7 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
                     <Input
                       id="signup-position"
                       type="text"
-                      placeholder="e.g. Analyst"
+                      placeholder=""
                       value={signupPosition}
                       onChange={(e) => setSignupPosition(e.target.value)}
                       className="pl-10 bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500"
@@ -312,7 +294,7 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
                     <Input
                       id="signup-department"
                       type="text"
-                      placeholder="e.g. Research"
+                      placeholder=""
                       value={signupDepartment}
                       onChange={(e) => setSignupDepartment(e.target.value)}
                       className="pl-10 bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500"

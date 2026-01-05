@@ -1,5 +1,5 @@
 import { useState, useRef, ChangeEvent } from 'react';
-import { Upload, X, MapPin, Image, Check, Loader2 } from 'lucide-react';
+import { Upload, MapPin, Check, Loader2, Thermometer, Mountain, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -21,9 +21,6 @@ interface GeoapifyResult {
 /* -------------------- COMPONENT -------------------- */
 
 const UploadDataPage = () => {
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-
   const [locationQuery, setLocationQuery] = useState('');
   const [suggestions, setSuggestions] = useState<GeoapifyResult[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<GeoapifyResult | null>(null);
@@ -34,29 +31,13 @@ const UploadDataPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  // New fields for lake data
+  const [lakeAreaKm2, setLakeAreaKm2] = useState<number>(0.0);
+  const [damSlopeDeg, setDamSlopeDeg] = useState<number>(0.0);
+  const [lakeTempC, setLakeTempC] = useState<number>(0.0);
+  const [elevationM, setElevationM] = useState<number>(0.0);
+
   const abortControllerRef = useRef<AbortController | null>(null);
-
-  /* -------------------- IMAGE HANDLERS -------------------- */
-
-  const handleImageSelect = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setSelectedImage(file);
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleRemoveImage = () => {
-    setSelectedImage(null);
-    setImagePreview(null);
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
 
   /* -------------------- LOCATION SEARCH -------------------- */
 
@@ -113,33 +94,42 @@ const UploadDataPage = () => {
   /* -------------------- SUBMIT -------------------- */
 
   const handleSubmit = async () => {
-    if (!selectedImage || !selectedLocation) return;
+    if (!selectedLocation) return;
 
     const payload = {
-      image: {
-        name: selectedImage.name,
-        size: selectedImage.size,
-        type: selectedImage.type,
-      },
-      location: {
-        lat: selectedLocation.lat,
-        lon: selectedLocation.lon,
-        place_id: selectedLocation.place_id,
-        formatted: selectedLocation.formatted,
-        confidence: selectedLocation.rank?.confidence ?? null,
-        result_type: selectedLocation.result_type ?? null,
-      },
+      lakeName: selectedLocation.formatted,
+      latitude: selectedLocation.lat,
+      longitude: selectedLocation.lon,
+      region: selectedLocation.address_line2 || 'Unknown',
+      Lake_Area_km2: lakeAreaKm2,
+      Dam_Slope_deg: damSlopeDeg,
+      Lake_Temp_C: lakeTempC,
+      Elevation_m: elevationM
     };
 
-    console.log('UPLOAD PAYLOAD →', payload);
-
     setIsSubmitting(true);
-    await new Promise(res => setTimeout(res, 1500));
+    try {
+      const res = await fetch('https://glacier-backend-4r0g.onrender.com/lakereport/uploaddata', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload),
+        credentials: 'include' // Include cookies
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSubmitSuccess(true);
+      } else {
+        alert(data.message);
+      }
+    } catch (err) {
+      alert('Error uploading data');
+    }
     setIsSubmitting(false);
-    setSubmitSuccess(true);
   };
 
-  const isFormValid = Boolean(selectedImage && selectedLocation);
+  const isFormValid = Boolean(selectedLocation);
 
   /* -------------------- UI -------------------- */
 
@@ -147,43 +137,6 @@ const UploadDataPage = () => {
     <div className="flex items-center justify-center min-h-full p-6">
       <div className="glass-panel p-8 w-full max-w-lg">
         <h2 className="text-2xl font-bold text-center mb-6">Upload Data</h2>
-
-        {/* IMAGE UPLOAD */}
-        <div className="mb-8">
-          <label className="block text-sm font-medium mb-3">
-            <Image className="inline w-4 h-4 mr-2" />
-            Lake Image
-          </label>
-
-          {!imagePreview ? (
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed rounded-xl p-8 text-center cursor-pointer hover:border-primary"
-            >
-              <Upload className="mx-auto w-8 h-8 mb-3 text-muted-foreground" />
-              <p className="font-medium">Click to upload image</p>
-              <p className="text-xs text-muted-foreground">PNG / JPG up to 10MB</p>
-            </div>
-          ) : (
-            <div className="relative rounded-xl overflow-hidden border">
-              <img src={imagePreview} className="w-full h-48 object-cover" />
-              <button
-                onClick={handleRemoveImage}
-                className="absolute top-3 right-3 bg-background p-1 rounded-full"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          )}
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleImageSelect}
-          />
-        </div>
 
         {/* LOCATION */}
         <div className="mb-8 relative">
@@ -232,6 +185,75 @@ const UploadDataPage = () => {
           )}
         </div>
 
+        {/* LAKE DATA FIELDS */}
+        <div className="mb-8">
+          <label className="block text-sm font-medium mb-4">
+            Lake Data
+          </label>
+          
+          <div className="grid grid-cols-2 gap-4">
+            {/* Lake Area km² */}
+            <div className="space-y-2">
+              <label className="text-xs text-muted-foreground flex items-center gap-1">
+                <TrendingUp className="w-3 h-3" />
+                Lake Area (km²)
+              </label>
+              <Input
+                type="number"
+                step="0.01"
+                value={lakeAreaKm2}
+                onChange={(e) => setLakeAreaKm2(parseFloat(e.target.value) || 0.0)}
+                className="bg-secondary/50"
+              />
+            </div>
+
+            {/* Dam Slope (deg) */}
+            <div className="space-y-2">
+              <label className="text-xs text-muted-foreground flex items-center gap-1">
+                <TrendingUp className="w-3 h-3" />
+                Dam Slope (deg)
+              </label>
+              <Input
+                type="number"
+                step="0.01"
+                value={damSlopeDeg}
+                onChange={(e) => setDamSlopeDeg(parseFloat(e.target.value) || 0.0)}
+                className="bg-secondary/50"
+              />
+            </div>
+
+            {/* Lake Temp (°C) */}
+            <div className="space-y-2">
+              <label className="text-xs text-muted-foreground flex items-center gap-1">
+                <Thermometer className="w-3 h-3" />
+                Lake Temp (°C)
+              </label>
+              <Input
+                type="number"
+                step="0.01"
+                value={lakeTempC}
+                onChange={(e) => setLakeTempC(parseFloat(e.target.value) || 0.0)}
+                className="bg-secondary/50"
+              />
+            </div>
+
+            {/* Elevation (m) */}
+            <div className="space-y-2">
+              <label className="text-xs text-muted-foreground flex items-center gap-1">
+                <Mountain className="w-3 h-3" />
+                Elevation (m)
+              </label>
+              <Input
+                type="number"
+                step="0.01"
+                value={elevationM}
+                onChange={(e) => setElevationM(parseFloat(e.target.value) || 0.0)}
+                className="bg-secondary/50"
+              />
+            </div>
+          </div>
+        </div>
+
         {/* SUBMIT */}
         <Button
           onClick={handleSubmit}
@@ -261,3 +283,4 @@ const UploadDataPage = () => {
 };
 
 export default UploadDataPage;
+

@@ -1,42 +1,23 @@
-# TODO - User Authentication & Profile Updates
+# TODO - Implementation Plan
 
-## Task Summary
-1. Move photo upload section to top of sign-up form and make it proper for uploading
-2. Replace "Register as Official" button with user dashboard dropdown when logged in
-3. Show user profile info (photo, name, email, position, department) in dropdown
+## Task 1: AuthModal.tsx Changes
+- [x] Reduce modal width (sm:max-w-[360px])
+- [x] Remove all placeholders from register form (name, email, position, department)
+- [x] Remove photo upload from UploadDataPage (not needed)
+- [x] Add photo upload section at top of register form
 
-## Implementation Plan
+## Task 2: TopNavbar.tsx Changes
+- [x] Replace "About" tab with "Notifications" tab (Bell icon)
 
-### Step 1: Update AuthModal.tsx
-- [x] Move photo upload section to the top of the register form
-- [x] Make photo upload more prominent with better styling
-- [x] Add click-to-upload functionality with file input
+## Task 3: Index.tsx Changes
+- [x] Replace "about" tab content with "Notifications" section
+- [x] Add notification card with lake info, confirm/don't confirm buttons
 
-### Step 2: Update TopNavbar.tsx
-- [x] Add user state management (get from localStorage)
-- [x] Create user dropdown menu component
-- [x] Replace "Register as Official" button with user avatar/dropdown when logged in
-- [x] Show user info (photo, name, email, position, department) in dropdown
-- [x] Add logout functionality
-
-### Step 3: Update Index.tsx
-- [x] Add currentUser state management
-- [x] Pass user state to TopNavbar
-- [x] Update AuthModal to trigger user state change
-
-### Step 4: Test and Verify
-- [ ] Test photo upload at top of register form
-- [ ] Test user login and dashboard button replacement
-- [ ] Test dropdown shows correct user info
-- [ ] Test logout functionality
-
-## Files Modified
-- `src/components/AuthModal.tsx` - Move photo upload to top
-- `src/components/TopNavbar.tsx` - Add user dropdown
-- `src/pages/Index.tsx` - User state management
-
-## Status
-- [ ] In Progress
-- [x] Completed
-
+## Task 4: UploadDataPage.tsx Changes
+- [x] Remove image upload section
+- [x] Add Lake_Area_km2 field (Float @default(0.0))
+- [x] Add Dam_Slope_deg field (Float @default(0.0))
+- [x] Add Lake_Temp_C field (Float @default(0.0))
+- [x] Add Elevation_m field (Float @default(0.0))
+- [x] Add UI form fields in 2-column grid layout
 
