@@ -1,40 +1,37 @@
-# Fix Errors Plan
+# Todo List
 
-## Errors Found
+## Feature: Fetch Lake Details on Click
 
-### 1. Index.tsx (Line 7)
-- **Error**: Wrong import path - `"@/components/uploaddatapage"` should be `"@/components/UploadDataPage"` (case sensitive)
-- **Fix**: ✅ Changed the import to use the correct case
+- [x] 1. Read and understand LakeDetailPanel component
+- [x] 2. Update handleLakeSelect in Index.tsx to fetch from details API
+- [x] 3. Add loading state for detail fetching
+- [x] 4. Update LakeDetailPanel to accept isLoading prop
+- [x] 5. Pass loading state to LakeDetailPanel
+- [x] 6. Update LakeData interface to include new fields (photo, declineById, declinedAt)
+- [x] 7. Enhance LakeDetailPanel UI with avatars, verification badge, and user details
 
-### 2. TopNavbar.tsx (Lines 99, 118)
-- **Error**: Missing opening quote in fetch URLs
-  - Line 99: `https://glacier-backend-1.onrender.com/official/signout'` → `'https://...`
-  - Line 118: `https://glacier-backend-1.onrender.com/official/updatepassword'` → `'https://...`
-- **Fix**: ✅ Added opening single quote before the URL (was already fixed)
+## Status: Completed
 
-### 3. AuthModal.tsx (Lines 33, 61)
-- **Error**: Missing opening quote in fetch URLs
-  - Line 33: `https://glacier-backend-1.onrender.com/official/signin'` → `'https://...`
-  - Line 61: `https://glacier-backend-1.onrender.com/official/register'` → `'https://...`
-- **Fix**: ✅ Added opening single quote before the URL (was already fixed)
+## Changes Summary:
 
-### 4. UploadDataPage.tsx (Line 96)
-- **Error**: Missing opening quote in fetch URL
-  - Line 96: `https://glacier-backend-1.onrender.com/lakereport/uploaddata'` → `'https://...`
-- **Fix**: ✅ Added opening single quote before the URL
+### LakeDetailPanel.tsx
+- Added `isLoading` prop with loading spinner UI
+- Added verification status badge (VERIFIED/REJECTED/PENDING)
+- Enhanced "Uploaded By" section with avatar, photo, email, position, department
+- Added "Verified By" section with full user details
+- Added "Verified At" date display
+- Added new icons: Shield, ShieldCheck, Mail, Building
 
-## Files to Edit
-1. `src/pages/Index.tsx` - ✅ Fixed
-2. `src/components/TopNavbar.tsx` - ✅ Already fixed
-3. `src/components/AuthModal.tsx` - ✅ Already fixed
-4. `src/components/UploadDataPage.tsx` - ✅ Fixed
+### MapView.tsx
+- Updated LakeData interface with new fields:
+  - `declineById: number | null`
+  - `declinedAt: string | null`
+  - `uploadedBy.photo: string | null`
+  - `verifiedBy.photo: string | null`
 
-## Status
-- [x] Fix Index.tsx import
-- [x] Fix TopNavbar.tsx fetch URLs
-- [x] Fix AuthModal.tsx fetch URLs
-- [x] Fix UploadDataPage.tsx fetch URL
+### Index.tsx
+- Updated LakeReport interface to match API response
+- Added console logging for debugging
 
-## Build Result
-✅ Build completed successfully!
+
 

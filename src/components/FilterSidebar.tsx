@@ -18,7 +18,7 @@ const FilterSidebar = ({ filters, onFiltersChange }) => {
 
   const riskOptions = [
     {
-      id: 'high',
+      id: 'HIGH',
       label: 'High',
       color: 'bg-destructive',
       textColor: 'text-destructive',
@@ -27,7 +27,7 @@ const FilterSidebar = ({ filters, onFiltersChange }) => {
       glow: 'shadow-[0_0_12px_hsl(4,90%,58%,0.5)]',
     },
     {
-      id: 'medium',
+      id: 'MEDIUM',
       label: 'Medium',
       color: 'bg-warning',
       textColor: 'text-warning',
@@ -36,7 +36,7 @@ const FilterSidebar = ({ filters, onFiltersChange }) => {
       glow: 'shadow-[0_0_8px_hsl(32,95%,50%,0.4)]',
     },
     {
-      id: 'low',
+      id: 'LOW',
       label: 'Low',
       color: 'bg-safe',
       textColor: 'text-safe',

@@ -5,6 +5,7 @@ import MapView from '@/components/MapView';
 
 import LakeDetailPanel from '@/components/LakeDetailPanel';
 import { GlacierLake } from '@/data/lakesData';
+import { LakeData } from '@/components/MapView';
 import UploadDataPage from "@/components/UploadDataPage"
 import AuthModal from '@/components/AuthModal';
 import { Button } from '@/components/ui/button';
@@ -45,19 +46,33 @@ interface LakeReport {
   uploadedBy: {
     id: number;
     name: string;
+    email: string;
+    position: string;
     department: string;
+    photo: string | null;
+  };
+  verifiedBy?: {
+    id: number;
+    name: string;
+    email: string;
+    position: string;
+    department: string;
+    photo: string | null;
   };
 }
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [selectedLake, setSelectedLake] = useState<GlacierLake | null>(null);
+  const [selectedLake, setSelectedLake] = useState<LakeData | null>(null);
+  const [lakes, setLakes] = useState<LakeData[]>([]);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [notifications, setNotifications] = useState<LakeReport[]>([]);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
+  const [loadingLakes, setLoadingLakes] = useState(false);
+  const [loadingLakeDetails, setLoadingLakeDetails] = useState(false);
   const [filters, setFilters] = useState({
-    riskLevels: ['high', 'medium', 'low'],
+    riskLevels: ['HIGH', 'MEDIUM', 'LOW'],
     yearRange: [2018, 2024] as [number, number],
     searchQuery: '',
   });
@@ -73,6 +88,31 @@ const Index = () => {
       }
     }
   }, []);
+
+  // Fetch lakes data on mount
+  useEffect(() => {
+    fetchLakes();
+  }, []);
+
+  const fetchLakes = async () => {
+    setLoadingLakes(true);
+    try {
+      const res = await fetch('https://glacier-backend-1.onrender.com/lakereport', {
+        credentials: 'include'
+      });
+      const data = await res.json();
+      console.log('API Response:', data);
+      if (data.success) {
+        setLakes(data.data);
+        console.log('Lakes loaded:', data.data.length);
+      } else {
+        console.error('Failed to fetch lakes:', data.message);
+      }
+    } catch (err) {
+      console.error('Error fetching lakes:', err);
+    }
+    setLoadingLakes(false);
+  };
 
   // Fetch notifications when tab changes to notifications
   useEffect(() => {
@@ -157,11 +197,47 @@ const Index = () => {
 
   const handleLogout = () => {
     setCurrentUser(null);
-    onTabChange('dashboard');
+    setActiveTab('dashboard');
   };
 
-  const handleLakeSelect = (lake: GlacierLake) => {
+  const handleLakeSelect = async (lake: LakeData) => {
+    console.log('========== LAKE CLICKED ==========');
+    console.log('Lake clicked:', lake);
+    
+    setLoadingLakeDetails(true);
     setSelectedLake(lake);
+
+    try {
+      const res = await fetch(`https://glacier-backend-1.onrender.com/lakereport/details/${lake.id}`, {
+        credentials: 'include'
+      });
+      const data = await res.json();
+      console.log('API Response:', data);
+      if (data.success && data.data) {
+        console.log('========== LAKE DETAILS ==========');
+        console.log('ID:', data.data.id);
+        console.log('Name:', data.data.lakeName);
+        console.log('Region:', data.data.region);
+        console.log('Latitude:', data.data.latitude);
+        console.log('Longitude:', data.data.longitude);
+        console.log('Risk Level:', data.data.riskLevel);
+        console.log('Confidence:', data.data.confidence);
+        console.log('Lake Area:', data.data.Lake_Area_km2, 'km²');
+        console.log('Elevation:', data.data.Elevation_m, 'm');
+        console.log('Dam Slope:', data.data.Dam_Slope_deg, '°');
+        console.log('Temperature:', data.data.Lake_Temp_C, '°C');
+        console.log('Verification Status:', data.data.verificationStatus);
+        console.log('Uploaded By:', data.data.uploadedBy);
+        console.log('Verified By:', data.data.verifiedBy);
+        console.log('==================================');
+        setSelectedLake(data.data);
+      } else {
+        console.error('Failed to fetch lake details:', data.message);
+      }
+    } catch (err) {
+      console.error('Error fetching lake details:', err);
+    }
+    setLoadingLakeDetails(false);
   };
 
   const handleClosePanel = () => {
@@ -194,13 +270,15 @@ const Index = () => {
           filters={filters}
           onLakeSelect={handleLakeSelect}
           selectedLake={selectedLake}
+          lakes={lakes}
+          isLoading={loadingLakes}
         />
       </div>
 
      
 
       {/* Lake Detail Panel */}
-      <LakeDetailPanel lake={selectedLake} onClose={handleClosePanel} />
+      <LakeDetailPanel lake={selectedLake} onClose={handleClosePanel} isLoading={loadingLakeDetails} />
 
       {/* Mobile overlay */}
       {selectedLake && (
