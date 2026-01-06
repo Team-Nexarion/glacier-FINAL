@@ -8,6 +8,7 @@ import {
   AlertTriangle,
   AlertCircle,
   CheckCircle,
+  Phone,
 } from 'lucide-react';
 
 import { Input } from '@/components/ui/input';
@@ -105,6 +106,15 @@ const FilterSidebar = ({ filters, onFiltersChange }) => {
                 />
               </button>
             ))}
+            <div className="w-8 h-px bg-border/50" />
+            
+            {/* Contact Us in collapsed mode */}
+            <div className="flex flex-col items-center gap-1" title="To Report Contact At: +17653398142">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 border border-primary/20">
+                <Phone className="w-4 h-4 text-primary" />
+              </div>
+              <span className="text-[10px] text-muted-foreground">+17653398142</span>
+            </div>
           </div>
         )}
 
@@ -210,6 +220,23 @@ const FilterSidebar = ({ filters, onFiltersChange }) => {
                   </div>
                 );
               })}
+            </div>
+
+            {/* Contact Us Section */}
+            <div className="border-t border-border/30 p-4 bg-secondary/20">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 border border-primary/20">
+                  <Phone className="w-4 h-4 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                    To Report Contact At
+                  </div>
+                  <div className="text-sm font-medium text-foreground truncate">
+                    +17653398142
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}

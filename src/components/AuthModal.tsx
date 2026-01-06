@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { X, User, Mail, Lock, Building, Camera, UserPlus, LogIn } from 'lucide-react';
+import GlofLogo from '@/assets/glof-logo.svg';
 
 interface AuthModalProps {
   open: boolean;
@@ -141,7 +142,7 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
               className="rounded-none h-12 data-[state=active]:bg-slate-700 data-[state=active]:text-white text-slate-400 border-b-2 border-transparent data-[state=active]:border-blue-500 transition-all"
             >
               <LogIn className="w-4 h-4 mr-2" />
-              Sign In
+              Sign in
             </TabsTrigger>
             <TabsTrigger 
               value="register"
@@ -192,7 +193,7 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
                 disabled={loading}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
               >
-                {loading ? 'Signing in...' : 'Sign In'}
+                {loading ? 'Signing in...' : 'Sign in'}
               </Button>
             </form>
           </TabsContent>

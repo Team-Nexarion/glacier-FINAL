@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Mountain, LayoutDashboard, Upload, Bell, UserPlus, LogOut, User, Mail, Building, Briefcase, Check, X, Lock, Key } from 'lucide-react';
+import { LayoutDashboard, Upload, Bell, UserPlus, LogOut, User, Mail, Building, Briefcase, Check, X, Lock, Key } from 'lucide-react';
+import GlofLogo from "@/assets/glof-logo.svg";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -115,8 +116,12 @@ const TopNavbar = ({ activeTab, onTabChange, onAuthClick, onLogout }: TopNavbarP
       <div className="flex items-center justify-between px-6 h-14">
         {/* Logo & Title */}
         <div className="flex items-center gap-3">
-          <div className="relative flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10 border border-primary/20">
-            <Mountain className="w-5 h-5 text-primary" />
+          <div className="relative flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 overflow-hidden">
+            <img
+              src={GlofLogo}
+              alt="GLOF Intelligence Logo"
+              className="w-6 h-6 object-contain"
+            />
           </div>
           <div>
             <h1 className="text-base font-semibold tracking-tight text-foreground">
@@ -293,4 +298,3 @@ const TopNavbar = ({ activeTab, onTabChange, onAuthClick, onLogout }: TopNavbarP
 };
 
 export default TopNavbar;
-
