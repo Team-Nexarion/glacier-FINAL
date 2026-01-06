@@ -38,7 +38,7 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
     setLoading(true);
     
     try {
-      const res = await fetch('https://glacier-backend-4r0g.onrender.com/official/signin', {
+      const res = await fetch('https://glacier-backend-1.onrender.com/official/signin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -77,7 +77,7 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
     }
     
     try {
-      const res = await fetch('https://glacier-backend-4r0g.onrender.com/official/register', {
+      const res = await fetch('https://glacier-backend-1.onrender.com/official/register', {
         method: 'POST',
         body: formData,
         credentials: 'include'

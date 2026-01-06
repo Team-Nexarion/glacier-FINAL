@@ -109,7 +109,7 @@ const UploadDataPage = () => {
 
     setIsSubmitting(true);
     try {
-      const res = await fetch('https://glacier-backend-4r0g.onrender.com/lakereport/uploaddata', {
+      const res = await fetch('https://glacier-backend-1.onrender.com/lakereport/uploaddata', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -263,7 +263,7 @@ const UploadDataPage = () => {
           {isSubmitting ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Uploading…
+              Uploading...
             </>
           ) : submitSuccess ? (
             <>

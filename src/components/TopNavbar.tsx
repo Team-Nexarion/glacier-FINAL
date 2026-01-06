@@ -57,7 +57,7 @@ const TopNavbar = ({ activeTab, onTabChange, onAuthClick, onLogout }: TopNavbarP
 
   const handleLogout = async () => {
     try {
-      await fetch('https://glacier-backend-4r0g.onrender.com/official/signout', {
+      await fetch('https://glacier-backend-1.onrender.com/official/signout', {
         method: 'POST',
         credentials: 'include'
       });
@@ -73,7 +73,7 @@ const TopNavbar = ({ activeTab, onTabChange, onAuthClick, onLogout }: TopNavbarP
     e.preventDefault();
     setUpdatingPassword(true);
     try {
-      const res = await fetch('https://glacier-backend-4r0g.onrender.com/official/updatepassword', {
+      const res = await fetch('https://glacier-backend-1.onrender.com/official/updatepassword', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json'

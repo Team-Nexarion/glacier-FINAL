@@ -5,7 +5,7 @@ import MapView from '@/components/MapView';
 
 import LakeDetailPanel from '@/components/LakeDetailPanel';
 import { GlacierLake } from '@/data/lakesData';
-import UploadDataPage from "@/components/uploaddatapage"
+import UploadDataPage from "@/components/UploadDataPage"
 import AuthModal from '@/components/AuthModal';
 import { Button } from '@/components/ui/button';
 import { Check, X, MapPin, User, AlertTriangle, BarChart2, Loader2 } from 'lucide-react';
@@ -84,7 +84,7 @@ const Index = () => {
   const fetchNotifications = async () => {
     setLoadingNotifications(true);
     try {
-      const res = await fetch('https://glacier-backend-4r0g.onrender.com/lakereport/pending/high-risk', {
+      const res = await fetch('https://glacier-backend-1.onrender.com/lakereport/pending/high-risk', {
         credentials: 'include'
       });
       const data = await res.json();
@@ -101,7 +101,7 @@ const Index = () => {
 
   const handleVerify = async (id: number) => {
     try {
-      const res = await fetch(`https://glacier-backend-4r0g.onrender.com/lakereport/verify/${id}`, {
+      const res = await fetch(`https://glacier-backend-1.onrender.com/lakereport/verify/${id}`, {
         method: 'PATCH',
         credentials: 'include'
       });
@@ -121,7 +121,7 @@ const Index = () => {
 
   const handleDecline = async (id: number) => {
     try {
-      const res = await fetch(`https://glacier-backend-4r0g.onrender.com/lakereport/reject/${id}`, {
+      const res = await fetch(`https://glacier-backend-1.onrender.com/lakereport/reject/${id}`, {
         method: 'PATCH',
         credentials: 'include'
       });

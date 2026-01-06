@@ -1,23 +1,40 @@
-# TODO - Implementation Plan
+# Fix Errors Plan
 
-## Task 1: AuthModal.tsx Changes
-- [x] Reduce modal width (sm:max-w-[360px])
-- [x] Remove all placeholders from register form (name, email, position, department)
-- [x] Remove photo upload from UploadDataPage (not needed)
-- [x] Add photo upload section at top of register form
+## Errors Found
 
-## Task 2: TopNavbar.tsx Changes
-- [x] Replace "About" tab with "Notifications" tab (Bell icon)
+### 1. Index.tsx (Line 7)
+- **Error**: Wrong import path - `"@/components/uploaddatapage"` should be `"@/components/UploadDataPage"` (case sensitive)
+- **Fix**: ✅ Changed the import to use the correct case
 
-## Task 3: Index.tsx Changes
-- [x] Replace "about" tab content with "Notifications" section
-- [x] Add notification card with lake info, confirm/don't confirm buttons
+### 2. TopNavbar.tsx (Lines 99, 118)
+- **Error**: Missing opening quote in fetch URLs
+  - Line 99: `https://glacier-backend-1.onrender.com/official/signout'` → `'https://...`
+  - Line 118: `https://glacier-backend-1.onrender.com/official/updatepassword'` → `'https://...`
+- **Fix**: ✅ Added opening single quote before the URL (was already fixed)
 
-## Task 4: UploadDataPage.tsx Changes
-- [x] Remove image upload section
-- [x] Add Lake_Area_km2 field (Float @default(0.0))
-- [x] Add Dam_Slope_deg field (Float @default(0.0))
-- [x] Add Lake_Temp_C field (Float @default(0.0))
-- [x] Add Elevation_m field (Float @default(0.0))
-- [x] Add UI form fields in 2-column grid layout
+### 3. AuthModal.tsx (Lines 33, 61)
+- **Error**: Missing opening quote in fetch URLs
+  - Line 33: `https://glacier-backend-1.onrender.com/official/signin'` → `'https://...`
+  - Line 61: `https://glacier-backend-1.onrender.com/official/register'` → `'https://...`
+- **Fix**: ✅ Added opening single quote before the URL (was already fixed)
+
+### 4. UploadDataPage.tsx (Line 96)
+- **Error**: Missing opening quote in fetch URL
+  - Line 96: `https://glacier-backend-1.onrender.com/lakereport/uploaddata'` → `'https://...`
+- **Fix**: ✅ Added opening single quote before the URL
+
+## Files to Edit
+1. `src/pages/Index.tsx` - ✅ Fixed
+2. `src/components/TopNavbar.tsx` - ✅ Already fixed
+3. `src/components/AuthModal.tsx` - ✅ Already fixed
+4. `src/components/UploadDataPage.tsx` - ✅ Fixed
+
+## Status
+- [x] Fix Index.tsx import
+- [x] Fix TopNavbar.tsx fetch URLs
+- [x] Fix AuthModal.tsx fetch URLs
+- [x] Fix UploadDataPage.tsx fetch URL
+
+## Build Result
+✅ Build completed successfully!
 
