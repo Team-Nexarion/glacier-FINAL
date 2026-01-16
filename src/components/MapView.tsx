@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import maplibregl, { GeoJSONSource } from 'maplibre-gl';
+import * as GeoJSON from 'geojson';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 export interface LakeData {
@@ -59,6 +60,14 @@ const MAP_STYLE = `https://maps.geoapify.com/v1/styles/osm-bright-smooth/style.j
 const MapView = ({ filters, onLakeSelect, selectedLake, lakes }: MapViewProps) => {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
+  const lakesRef = useRef(lakes);
+  const onLakeSelectRef = useRef(onLakeSelect);
+
+  // Keep refs updated with latest values
+  useEffect(() => {
+    lakesRef.current = lakes;
+    onLakeSelectRef.current = onLakeSelect;
+  }, [lakes, onLakeSelect]);
 
   /* -------------------------------------------------- */
   /* FILTER LAKES */
@@ -171,12 +180,12 @@ const MapView = ({ filters, onLakeSelect, selectedLake, lakes }: MapViewProps) =
         console.log('Clicked lake ID:', lakeId);
 
         // Use loose equality to handle string/number type mismatches
-        const lake = lakes.find(l => l.id == lakeId);
+        const lake = lakesRef.current.find(l => l.id == lakeId);
         console.log('Found lake:', lake);
 
         if (lake) {
           console.log('Lake found in array, calling onLakeSelect with full lake data');
-          onLakeSelect(lake);
+          onLakeSelectRef.current(lake);
 
           map.flyTo({
             center: [lake.longitude, lake.latitude],
@@ -217,7 +226,7 @@ const MapView = ({ filters, onLakeSelect, selectedLake, lakes }: MapViewProps) =
             },
           };
           console.log('Calling onLakeSelect with minimal lake data (will trigger API fetch):', minimalLake);
-          onLakeSelect(minimalLake);
+          onLakeSelectRef.current(minimalLake);
         }
       });
 
@@ -261,31 +270,53 @@ const MapView = ({ filters, onLakeSelect, selectedLake, lakes }: MapViewProps) =
       };
 
       animatePulse();
+
+      /* UPDATE DATA IMMEDIATELY AFTER MAP LOADS */
+      const source = map.getSource('glacier-lakes') as GeoJSONSource;
+      if (source && filteredLakes.length > 0) {
+        const geojsonData: GeoJSON.FeatureCollection = {
+          type: 'FeatureCollection',
+          features: filteredLakes.map(lake => ({
+            type: 'Feature' as const,
+            properties: {
+              id: lake.id,
+              riskLevel: lake.riskLevel,
+              name: lake.lakeName,
+              confidence: lake.confidence,
+            },
+            geometry: {
+              type: 'Point' as const,
+              coordinates: [lake.longitude, lake.latitude],
+            },
+          })),
+        };
+        source.setData(geojsonData);
+      }
     });
 
     return () => {
       map.remove();
       mapRef.current = null;
     };
-  }, []);
+  }, [filteredLakes]);
 
   /* -------------------------------------------------- */
   /* UPDATE DATA */
   /* -------------------------------------------------- */
   useEffect(() => {
     const map = mapRef.current;
-    if (!map) return;
+    if (!map || !map.isStyleLoaded()) return;
 
     const source = map.getSource('glacier-lakes') as GeoJSONSource;
     if (!source) return;
 
-    console.log('MapView - Received lakes:', lakes.length);
+    console.log('MapView - Received lakes:', lakesRef.current.length);
     console.log('MapView - Filtered lakes:', filteredLakes.length);
 
-    const geojsonData = {
+    const geojsonData: GeoJSON.FeatureCollection = {
       type: 'FeatureCollection',
       features: filteredLakes.map(lake => ({
-        type: 'Feature',
+        type: 'Feature' as const,
         properties: {
           id: lake.id,
           riskLevel: lake.riskLevel,
@@ -293,7 +324,7 @@ const MapView = ({ filters, onLakeSelect, selectedLake, lakes }: MapViewProps) =
           confidence: lake.confidence,
         },
         geometry: {
-          type: 'Point',
+          type: 'Point' as const,
           coordinates: [lake.longitude, lake.latitude],
         },
       })),
@@ -301,7 +332,7 @@ const MapView = ({ filters, onLakeSelect, selectedLake, lakes }: MapViewProps) =
 
     console.log('MapView - GeoJSON features:', geojsonData.features.length);
     source.setData(geojsonData);
-  }, [filteredLakes, lakes]);
+  }, [filteredLakes]);
 
   /* -------------------------------------------------- */
   /* RENDER */

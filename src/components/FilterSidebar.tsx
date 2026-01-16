@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Search,
   ChevronLeft,
@@ -14,8 +14,57 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
+const getTimeAgo = (date: Date): string => {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffSecs = Math.floor(diffMs / 1000);
+  const diffMins = Math.floor(diffSecs / 60);
+  const diffHours = Math.floor(diffMins / 60);
+
+  if (diffSecs < 60) return 'just now';
+  if (diffMins < 60) return `${diffMins} min ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  return `${Math.floor(diffHours / 24)}d ago`;
+};
+
 const FilterSidebar = ({ filters, onFiltersChange }) => {
   const [collapsed, setCollapsed] = useState(false);
+  const [stats, setStats] = useState({
+    totalLakes: 0,
+    highRiskLakes: 0,
+    lastUpdated: new Date(),
+  });
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  // Fetch lake statistics from API
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch('https://glacier-backend-1.onrender.com/lakereport', {
+          credentials: 'include'
+        });
+        const data = await res.json();
+        
+        if (data.success && data.data) {
+          const lakes = data.data;
+          const totalLakes = lakes.length;
+          const highRiskLakes = lakes.filter(lake => lake.riskLevel === 'HIGH').length;
+          
+          setStats({
+            totalLakes,
+            highRiskLakes,
+            lastUpdated: new Date(),
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching lake stats:', err);
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
 
   const riskOptions = [
     {
@@ -167,14 +216,18 @@ const FilterSidebar = ({ filters, onFiltersChange }) => {
 
                 <div className="grid grid-cols-2 gap-2">
                   <div className="bg-secondary/30 rounded-lg p-3 border border-border/30">
-                    <div className="text-lg font-bold text-foreground">7</div>
+                    <div className="text-lg font-bold text-foreground">
+                      {loadingStats ? '-' : stats.totalLakes}
+                    </div>
                     <div className="text-[10px] text-muted-foreground">
                       Total Lakes
                     </div>
                   </div>
 
                   <div className="bg-destructive/10 rounded-lg p-3 border border-destructive/20">
-                    <div className="text-lg font-bold text-destructive">3</div>
+                    <div className="text-lg font-bold text-destructive">
+                      {loadingStats ? '-' : stats.highRiskLakes}
+                    </div>
                     <div className="text-[10px] text-destructive/70">
                       High Risk
                     </div>
@@ -187,7 +240,7 @@ const FilterSidebar = ({ filters, onFiltersChange }) => {
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <TrendingUp className="w-3.5 h-3.5" />
                   <span className="text-[11px]">
-                    Last updated 2 min ago
+                    {loadingStats ? 'Loading...' : `Last updated ${getTimeAgo(stats.lastUpdated)}`}
                   </span>
                 </div>
               </div>
