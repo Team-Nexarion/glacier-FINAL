@@ -20,6 +20,7 @@ interface TopNavbarProps {
   onTabChange: (tab: string) => void;
   onAuthClick?: () => void;
   onLogout?: () => void;
+  currentUser?: User | null;
 }
 
 interface User {
@@ -31,24 +32,33 @@ interface User {
   photo: string | null;
 }
 
-const TopNavbar = ({ activeTab, onTabChange, onAuthClick, onLogout }: TopNavbarProps) => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+const TopNavbar = ({ activeTab, onTabChange, onAuthClick, onLogout, currentUser: propCurrentUser }: TopNavbarProps) => {
+  const [currentUser, setCurrentUser] = useState<User | null>(propCurrentUser || null);
   const [updatePasswordOpen, setUpdatePasswordOpen] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [updatingPassword, setUpdatingPassword] = useState(false);
 
   useEffect(() => {
-    // Check for logged in user
-    const userStr = localStorage.getItem('currentUser');
-    if (userStr) {
-      try {
-        setCurrentUser(JSON.parse(userStr));
-      } catch (e) {
-        console.error('Error parsing user data:', e);
+    // Update local state when prop changes
+    if (propCurrentUser) {
+      setCurrentUser(propCurrentUser);
+    }
+  }, [propCurrentUser]);
+
+  useEffect(() => {
+    // Also check localStorage as fallback
+    if (!propCurrentUser) {
+      const userStr = localStorage.getItem('currentUser');
+      if (userStr) {
+        try {
+          setCurrentUser(JSON.parse(userStr));
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
       }
     }
-  }, []);
+  }, [propCurrentUser]);
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -138,23 +148,44 @@ const TopNavbar = ({ activeTab, onTabChange, onAuthClick, onLogout }: TopNavbarP
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
+            const isLocked = (item.id === 'upload' || item.id === 'notifications') && !currentUser;
+            
             return (
-              <Button
-                key={item.id}
-                variant="ghost"
-                size="sm"
-                onClick={() => onTabChange(item.id)}
-                className={`
-                  gap-2 h-9 px-4 rounded-lg transition-all duration-200
-                  ${isActive 
-                    ? 'bg-primary/10 text-primary' 
-                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
-                  }
-                `}
-              >
-                <Icon className="w-4 h-4" />
-                {item.label}
-              </Button>
+              <div key={item.id} className="relative group">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    if (!isLocked) {
+                      onTabChange(item.id);
+                    } else {
+                      onAuthClick?.();
+                    }
+                  }}
+                  disabled={isLocked}
+                  className={`
+                    gap-2 h-9 px-4 rounded-lg transition-all duration-200
+                    ${isLocked 
+                      ? 'opacity-50 cursor-not-allowed text-muted-foreground' 
+                      : isActive 
+                      ? 'bg-primary/10 text-primary' 
+                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                    }
+                  `}
+                >
+                  <div className="relative flex items-center gap-2">
+                    <Icon className="w-4 h-4" />
+                    {item.label}
+                    {isLocked && <Lock className="w-3 h-3 ml-1" />}
+                  </div>
+                </Button>
+                
+                {isLocked && (
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs bg-black text-yellow-400 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                    Login required
+                  </div>
+                )}
+              </div>
             );
           })}
         </nav>

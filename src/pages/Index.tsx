@@ -252,6 +252,7 @@ const Index = () => {
         onTabChange={setActiveTab} 
         onAuthClick={() => setAuthModalOpen(true)}
         onLogout={handleLogout}
+        currentUser={currentUser}
       />
 
       {/* Auth Modal */}

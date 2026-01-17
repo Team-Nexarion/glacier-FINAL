@@ -50,11 +50,6 @@ const RiskTag = ({
 }: RiskTagProps) => {
   const Icon = ICON_MAP[level];
 
-  const formattedScore =
-    typeof score === 'number'
-      ? `${Math.round(score * 100)}%`
-      : null;
-
   return (
     <span
       role="status"
@@ -71,12 +66,6 @@ const RiskTag = ({
       {showIcon && <Icon className={ICON_SIZES[size]} aria-hidden />}
 
       <span>{getRiskLabel(level)}</span>
-
-      {formattedScore && (
-        <span className="ml-1 opacity-70">
-          ({formattedScore})
-        </span>
-      )}
     </span>
   );
 };
